@@ -74,72 +74,79 @@ for k in range(1, steps):
 df_logs = pd.DataFrame(logs)
 
 # ------------------------ VISUALIZACIÓN ------------------------
-fig, axs = plt.subplots(7, 1, figsize=(18, 29), sharex=True)
+fig, axs = plt.subplots(9, 1, figsize=(18, 80), sharex=True)  # Aumentamos altura total
+fig.subplots_adjust(hspace=20)  # Más separación vertical
 
-axs[0].plot(df_logs['Paso'], df_logs['Salida Y(k)'], label="Y(k) - Salida", linewidth=2)
-axs[0].plot(df_logs['Paso'], df_logs['Referencia R(k)'], '--', label="R(k) - Referencia", color='orange')
-axs[0].set_ylabel("Salida (req/s)")
-axs[0].legend()
-axs[0].grid(True)
-axs[0].annotate('Pico viral', xy=(65, Y[65]), xytext=(70, Y[65]+800),
-                arrowprops=dict(arrowstyle='->'), fontsize=10, color='purple')
-axs[0].annotate('Ataque DDoS', xy=(110, Y[110]), xytext=(115, Y[110]+800),
-                arrowprops=dict(arrowstyle='->'), fontsize=10, color='red')
-axs[0].annotate('Recuperación con control', xy=(130, Y[130]), xytext=(135, Y[130]-1000),
-                arrowprops=dict(arrowstyle='->'), fontsize=10, color='green')
 
-axs[1].plot(df_logs['Paso'], df_logs['Error E(k)'], label="E(k) - Error", color='crimson')
-axs[1].set_ylabel("Error")
+# Evento destacados
+eventos = [
+    {"start": 60, "end": 80, "label": "Pico viral", "color": "orange"},
+    {"start": 100, "end": 120, "label": "Ataque DDoS", "color": "red"},
+    {"start": 180, "end": 200, "label": "Decay exponencial", "color": "green"},
+    {"start": 220, "end": 240, "label": "Ruido senoidal", "color": "purple"},
+]
+
+def resaltar_eventos(ax):
+    for evento in eventos:
+        ax.axvspan(evento["start"], evento["end"], color=evento["color"], alpha=0.2)
+        y_pos = ax.get_ylim()[1]
+        ax.text((evento["start"] + evento["end"]) / 2, y_pos * 0.9,
+                evento["label"], color=evento["color"], fontsize=11,
+                ha='center', va='center',
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
+
+# 1. Referencia
+axs[0].plot(df_logs['Paso'], df_logs['Referencia R(k)'], label='R(k)', color='black')
+axs[0].set_ylabel("R(kt)")
+resaltar_eventos(axs[0])
+
+# 2. Ym(k)
+axs[1].plot(df_logs['Paso'], df_logs['Medición Ym(k)'], label='Ym(kt)', color='blue')
+axs[1].axhline(1500 * 0.85, color='gray', linestyle='--', linewidth=1, label='-15% tolerancia')
+axs[1].axhline(1500 * 1.15, color='gray', linestyle='--', linewidth=1, label='+15% tolerancia')
+axs[1].set_ylabel('Ym(kt)')
 axs[1].legend()
-axs[1].grid(True)
-axs[1].annotate('Error alto por DDoS', xy=(110, E[110]), xytext=(120, E[110]+100),
-                arrowprops=dict(arrowstyle='->'), fontsize=10, color='red')
+resaltar_eventos(axs[1])
 
-axs[2].plot(df_logs['Paso'], df_logs['Control U(k)'], label="U(k) - Controlador", color='darkblue')
-axs[2].set_ylabel("Control")
-axs[2].legend()
-axs[2].grid(True)
-axs[2].annotate('Control sube por tráfico', xy=(65, U[65]), xytext=(70, U[65]+50),
-                arrowprops=dict(arrowstyle='->'), fontsize=10)
-axs[2].annotate('Máxima acción de control', xy=(110, U[110]), xytext=(115, U[110]-100),
-                arrowprops=dict(arrowstyle='->'), fontsize=10)
+# 3. Error E(k)
+axs[2].plot(df_logs['Paso'], df_logs['Error E(k)'], label='E(k)', color='darkred')
+axs[2].axhline(0, color='black', linestyle='--', linewidth=1)
+axs[2].set_ylabel('E(kt)')
+resaltar_eventos(axs[2])
 
-axs[3].plot(df_logs['Paso'], df_logs['Perturbación'], label="Perturbación", color='black', linestyle='dotted')
-axs[3].set_ylabel("Perturbación")
-axs[3].legend()
-axs[3].grid(True)
-axs[3].annotate('Pico viral', xy=(65, perturb[65]), xytext=(70, perturb[65]+500),
-                arrowprops=dict(arrowstyle='->'), fontsize=10)
-axs[3].annotate('DDoS', xy=(110, perturb[110]), xytext=(115, perturb[110]+500),
-                arrowprops=dict(arrowstyle='->'), fontsize=10)
-axs[3].annotate('Perturbación senoidal', xy=(145, perturb[145]), xytext=(150, perturb[145]-300),
-                arrowprops=dict(arrowstyle='->'), fontsize=10)
+# 4. Control U(k)
+axs[3].plot(df_logs['Paso'], df_logs['Control U(k)'], label='U(k)', color='teal')
+axs[3].set_ylabel('U(kt)')
+resaltar_eventos(axs[3])
 
-axs[4].plot(df_logs['Paso'], df_logs['Entrada I(k)'], label="I(k) - Entrante", color='gray')
-axs[4].plot(df_logs['Paso'], df_logs['Procesado I_proc(k)'], label="I_proc(k) - Procesado", color='green')
-axs[4].set_ylabel("Solicitudes (req/s)")
-axs[4].legend()
-axs[4].grid(True)
-axs[4].annotate('Tráfico entrante sin filtrar', xy=(65, I[65]), xytext=(70, I[65]+400),
-                arrowprops=dict(arrowstyle='->'), fontsize=10)
-axs[4].annotate('Limitación activa', xy=(110, I_processed[110]), xytext=(115, I_processed[110]-500),
-                arrowprops=dict(arrowstyle='->'), fontsize=10, color='green')
+# 5. I(k)
+axs[4].plot(df_logs['Paso'], df_logs['Entrada I(k)'], label='I(k)', color='darkorange')
+axs[4].set_ylabel('I(kt)')
+resaltar_eventos(axs[4])
 
-axs[5].plot(df_logs['Paso'], df_logs['HTTP 429'], label="Respuestas HTTP 429", color='red')
-axs[5].set_ylabel("HTTP 429 (req/s)")
-axs[5].legend()
-axs[5].grid(True)
-axs[5].annotate('Muchos 429 por DDoS', xy=(110, http_429[110]), xytext=(120, http_429[110]+500),
-                arrowprops=dict(arrowstyle='->'), fontsize=10, color='red')
-axs[5].annotate('Alivio tras control', xy=(140, http_429[140]), xytext=(145, http_429[140]-300),
-                arrowprops=dict(arrowstyle='->'), fontsize=10, color='green')
+# 6. I procesado
+axs[5].plot(df_logs['Paso'], df_logs['Procesado I_proc(k)'], label='I_proc(k)', color='seagreen')
+axs[5].set_ylabel('I_processed(kt)')
+resaltar_eventos(axs[5])
 
-axs[6].plot(df_logs['Paso'], df_logs['Referencia R(k)'], label="R(k) - Referencia", color='orange', linewidth=2)
-axs[6].set_ylabel("Referencia (req/s)")
-axs[6].set_xlabel("Paso")
-axs[6].legend()
-axs[6].grid(True)
+# 7. Perturbaciones
+axs[6].plot(df_logs['Paso'], df_logs['Perturbación'], label='Perturbación', color='darkviolet')
+axs[6].set_ylabel('Perturbación')
+resaltar_eventos(axs[6])
 
-plt.suptitle("Simulación de control de flujo utilizando políticas de rate limiting aplicadas en el backend de una API RESTful", fontsize=14)
-plt.tight_layout(rect=[0, 0, 1, 0.965])
+# 8. Salida Y(k)
+axs[7].plot(df_logs['Paso'], df_logs['Salida Y(k)'], label='Y(k)', color='navy')
+axs[7].set_ylabel('Y(kt)')
+resaltar_eventos(axs[7])
+
+# 9. HTTP 429
+axs[8].plot(df_logs['Paso'], df_logs['HTTP 429'], label='HTTP 429', color='crimson')
+axs[8].set_ylabel('HTTP 429')
+resaltar_eventos(axs[8])
+axs[8].set_xlabel('Paso de tiempo (k)')
+
+# Deja espacio arriba para el título
+plt.tight_layout(rect=[0, 0, 1, 0.96])  # Reservamos espacio para el título
 plt.show()
+print(f"Máximo Ym: {np.max(Ym)}")
+print(f"Mínimo Ym: {np.min(Ym)}")
