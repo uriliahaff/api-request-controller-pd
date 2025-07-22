@@ -88,16 +88,16 @@ def update(kt):
     Y[kt] = a * Y[kt - 1] + b * I_processed[kt] + d * perturb[kt]
     Ym[kt] = Y[kt]
 
-    start = max(0, kt - window)
-    x_vals = np.arange(start, kt + 1)
+    x_vals = np.arange(kt + 1)
+
 
     datos = [
         np.full_like(x_vals, R),
-        Ym[start:kt + 1],
-        E[start:kt + 1],
-        I_processed[start:kt + 1],
-        perturb[start:kt + 1],
-        Y[start:kt + 1],
+        Ym[:kt + 1],
+        E[:kt + 1],
+        I_processed[:kt + 1],
+        perturb[:kt + 1],
+        Y[:kt + 1],
     ]
 
     for evento in eventos:
@@ -253,8 +253,10 @@ def iniciar_simulacion(event):
         I[:] = base_traffic  # reinicia entrada
 
         axs[3].axhline(y=R, linestyle='--', color='gray', linewidth=1, label='Referencia')
+        axs[3].legend(loc='upper right', fontsize=9)
         axs[5].axhline(R * 0.85, color='gray', linestyle='--', linewidth=1, label='-15% tolerancia')
         axs[5].axhline(R * 1.15, color='gray', linestyle='--', linewidth=1, label='+15% tolerancia')
+        axs[5].legend(loc='upper right', fontsize=9)
         for i, ax in enumerate(axs):
             ax.set_xlim(0, steps)
         if ani is None:
