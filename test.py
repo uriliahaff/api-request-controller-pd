@@ -29,7 +29,10 @@ perturb = np.zeros(steps)
 
 base_traffic = 4500
 
-
+# Inicializaciones dinámicas
+def init_arrays(n):
+    return (np.zeros(n), np.zeros(n), np.zeros(n),
+            np.zeros(n), np.zeros(n), np.zeros(n), np.zeros(n))
 
 I[0:steps] = base_traffic
 
@@ -69,9 +72,6 @@ for i, ax in enumerate(axs):
     lines.append(line)
 
 axs[-1].set_xlabel("Paso de tiempo (kt)", fontsize=8)
-axs[3].axhline(y=R, linestyle='--', color='gray', linewidth=1, label='Referencia')
-axs[5].axhline(5000 * 0.85, color='gray', linestyle='--', linewidth=1, label='-15% tolerancia')
-axs[5].axhline(5000 * 1.15, color='gray', linestyle='--', linewidth=1, label='+15% tolerancia')
 
 eventos = []
 
@@ -115,46 +115,59 @@ def update(kt):
     return lines
 
 # === PANEL IZQUIERDO COMPLETO ===
+# --- TÍTULO PRINCIPAL ---
+fig.text(0.06, 0.97, "Panel de Simulación", fontsize=13, fontweight='bold', color='darkblue')
 
-# --- Parámetros de simulación ---
+# --- PARÁMETROS DE SIMULACIÓN ---
 ax_r = plt.axes([0.06, 0.93, 0.15, 0.035])
 textbox_r = TextBox(ax_r, "Referencia R", initial=str(R))
 
-ax_kp = plt.axes([0.06, 0.88, 0.15, 0.035])
+ax_steps = plt.axes([0.06, 0.88, 0.15, 0.035])
+textbox_steps = TextBox(ax_steps, "Steps", initial=str(steps))
+
+ax_kp = plt.axes([0.06, 0.83, 0.15, 0.035])
 textbox_kp = TextBox(ax_kp, "Kp", initial=str(ktp))
 
-ax_kd = plt.axes([0.06, 0.83, 0.15, 0.035])
+ax_kd = plt.axes([0.06, 0.78, 0.15, 0.035])
 textbox_kd = TextBox(ax_kd, "Kd", initial=str(ktd))
 
-ax_i = plt.axes([0.06, 0.78, 0.15, 0.035])
+ax_i = plt.axes([0.06, 0.73, 0.15, 0.035])
 textbox_i = TextBox(ax_i, "Flujo base I", initial=str(base_traffic))
 
-# --- Parámetros de perturbación ---
-ax_dur = plt.axes([0.06, 0.71, 0.15, 0.035])
+# --- TÍTULO PERTURBACIONES ---
+fig.text(0.06, 0.68, "Panel de Perturbaciones", fontsize=12, fontweight='bold', color='darkgreen')
+
+# --- PARÁMETROS DE PERTURBACIÓN ---
+ax_dur = plt.axes([0.06, 0.63, 0.15, 0.035])
 textbox_duracion = TextBox(ax_dur, "Duración", initial="20")
 
-ax_val = plt.axes([0.06, 0.66, 0.15, 0.035])
+ax_val = plt.axes([0.06, 0.58, 0.15, 0.035])
 textbox_valor = TextBox(ax_val, "Valor", initial="8000")
 
-ax_deriva_dur = plt.axes([0.06, 0.61, 0.15, 0.035])
+ax_deriva_dur = plt.axes([0.06, 0.53, 0.15, 0.035])
 textbox_tiempo_deriva = TextBox(ax_deriva_dur, "Tiempo Deriva", initial="10")
 
-# --- Botones de perturbación ---
-ax_escalon = plt.axes([0.06, 0.54, 0.15, 0.045])
+# --- BOTONES DE PERTURBACIÓN ---
+ax_escalon = plt.axes([0.06, 0.47, 0.15, 0.045])
 btn_escalon = Button(ax_escalon, "Agregar Escalón")
 
-ax_rfi = plt.axes([0.06, 0.48, 0.15, 0.045])
+ax_rfi = plt.axes([0.06, 0.41, 0.15, 0.045])
 btn_rfi = Button(ax_rfi, "Agregar RFI")
 
-ax_emi = plt.axes([0.06, 0.42, 0.15, 0.045])
+ax_emi = plt.axes([0.06, 0.35, 0.15, 0.045])
 btn_emi = Button(ax_emi, "Agregar EMI")
 
-ax_btn_deriva = plt.axes([0.06, 0.36, 0.15, 0.045])
+ax_btn_deriva = plt.axes([0.06, 0.29, 0.15, 0.045])
 btn_deriva = Button(ax_btn_deriva, "Agregar Deriva")
 
-# --- Botón para iniciar simulación ---
-ax_start = plt.axes([0.06, 0.25, 0.15, 0.05])
+# --- TÍTULO INICIO SIMULACIÓN ---
+fig.text(0.06, 0.24, "Inicio Simulación", fontsize=12, fontweight='bold', color='purple')
+
+# --- BOTÓN PARA INICIAR SIMULACIÓN ---
+ax_start = plt.axes([0.06, 0.18, 0.15, 0.05])
 btn_start = Button(ax_start, "Iniciar Simulación")
+
+
 
 
 def aplicar_perturbacion(tipo):
@@ -231,9 +244,16 @@ def iniciar_simulacion(event):
         ktp = float(textbox_kp.text)
         ktd = float(textbox_kd.text)
         base_traffic = float(textbox_i.text)
+        steps = int(textbox_steps.text)
 
+        Y, Ym, E, U, I, I_processed, perturb = init_arrays(steps)
         I[:] = base_traffic  # reinicia entrada
 
+        axs[3].axhline(y=R, linestyle='--', color='gray', linewidth=1, label='Referencia')
+        axs[5].axhline(R * 0.85, color='gray', linestyle='--', linewidth=1, label='-15% tolerancia')
+        axs[5].axhline(R * 1.15, color='gray', linestyle='--', linewidth=1, label='+15% tolerancia')
+        for i, ax in enumerate(axs):
+            ax.set_xlim(0, steps)
         if ani is None:
             ani = FuncAnimation(fig, update, frames=steps, interval=80, repeat=False)
         simulacion_iniciada = True
