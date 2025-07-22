@@ -4,7 +4,7 @@ from matplotlib.widgets import TextBox, Button
 from matplotlib.animation import FuncAnimation
 import numpy as np
 from matplotlib.gridspec import GridSpec
-import matplotlib.ticker as ticker  # <--- agregado para controlar los ejes
+import matplotlib.ticker as ticker  
 
 matplotlib.use("TkAgg")
 
@@ -64,7 +64,6 @@ for i, ax in enumerate(axs):
     ax.set_ylim(*ylims[i])
     ax.legend(loc='upper right', fontsize=9)
     
-    # 👉 Ticks enteros en X y múltiplos razonables en Y
     ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
     ax.yaxis.set_major_locator(ticker.AutoLocator())
     ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f'{int(x)}'))
@@ -167,7 +166,11 @@ fig.text(0.06, 0.24, "Inicio Simulación", fontsize=12, fontweight='bold', color
 ax_start = plt.axes([0.06, 0.18, 0.15, 0.05])
 btn_start = Button(ax_start, "Iniciar Simulación")
 
+ax_pause = plt.axes([0.06, 0.11, 0.15, 0.05])
+btn_pause = Button(ax_pause, "Pausar/Reanudar")
 
+ax_reset = plt.axes([0.06, 0.04, 0.15, 0.05])
+btn_reset = Button(ax_reset, "Reiniciar")
 
 
 def aplicar_perturbacion(tipo):
@@ -262,7 +265,55 @@ def iniciar_simulacion(event):
     except ValueError:
         print("⚠️ Parámetros inválidos")
 
+paused = False
+
+def pausar_simulacion(event):
+    global paused
+    if ani is None:
+        return
+    if paused:
+        ani.event_source.start()
+        paused = False
+        print("▶ Simulación reanudada")
+    else:
+        ani.event_source.stop()
+        paused = True
+        print("⏸ Simulación pausada")
+
+def reiniciar_simulacion(event):
+    global ani, paused, eventos, Y, Ym, E, U, I, I_processed, perturb
+
+    if ani:
+        ani.event_source.stop()
+        ani = None
+    paused = False
+
+    # Reset arrays con tamaño steps actual
+    steps_val = int(textbox_steps.text)
+    Y, Ym, E, U, I, I_processed, perturb = init_arrays(steps_val)
+    I[:] = float(textbox_i.text)
+
+    # Limpiar gráficos
+    for line in lines:
+        line.set_data([], [])
+    for evento in eventos:
+        for txt in evento["text_objs"]:
+            txt.remove()
+        for span in evento["spans"]:
+            span.remove()
+    eventos.clear()
+
+    # Reset ejes
+    for i, ax in enumerate(axs):
+        ax.set_xlim(0, steps_val)
+
+    fig.canvas.draw_idle()
+    print("🔄 Simulación reiniciada. Ajusta parámetros y presiona Iniciar Simulación.")
+
+
 btn_start.on_clicked(iniciar_simulacion)
+btn_pause.on_clicked(pausar_simulacion)
+btn_reset.on_clicked(reiniciar_simulacion)
 
 plt.tight_layout()
 plt.show()
