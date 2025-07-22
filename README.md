@@ -23,7 +23,7 @@ sudo apt-get install python3-tk
 1. Cloná este repositorio:
 
 ```bash
-git clone https://github.com/uriliahaff/api-request-controller-pd.git
+git clone [https://github.com/uriliahaff/api-request-controller-pd.git](https://github.com/uriliahaff/api-request-controller-pd.git)
 cd api-request-controller-pd
 ```
 
