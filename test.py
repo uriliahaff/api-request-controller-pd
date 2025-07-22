@@ -195,12 +195,12 @@ def aplicar_perturbacion(tipo):
             etiqueta = f"Deriva {valor}"
             color = "orange"
         elif tipo == "RFI":
-            ruido = valor * np.sin(10 * np.linspace(0, np.pi, end - start))
+            ruido = valor/4 * np.sin(10 * np.linspace(0, np.pi, end - start))
             perturb[start:end] = ruido
             etiqueta = f"RFI {valor}"
             color = "green"
         elif tipo == "EMI":
-            ruido = valor * np.random.randn(end - start)
+            ruido = valor/4 * np.random.randn(end - start)
             perturb[start:end] = ruido
             etiqueta = f"EMI {valor}"
             color = "red"
