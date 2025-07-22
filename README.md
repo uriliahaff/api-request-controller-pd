@@ -23,12 +23,31 @@ sudo apt-get install python3-tk
 1. Cloná este repositorio:
 
 ```bash
-git clone [https://github.com/uriliahaff/api-request-controller-pd.git](https://github.com/uriliahaff/api-request-controller-pd.git)
+git clone https://github.com/uriliahaff/api-request-controller-pd.git
 cd api-request-controller-pd
 ```
 
-2.Ejecutá el script:
+2. Ejecutá el script:
 
 ```bash
 python test.py
 ```
+
+## 📌 Características principales
+
+- Controlador PID configurable: `Kp`, `Kd`, `Referencia R`, `Flujo Base I`
+- Animación en tiempo real de:
+  - Salida del sistema
+  - Señal de error
+  - Flujo procesado
+  - Perturbaciones aplicadas
+- Perturbaciones dinámicas:
+  - Escalón
+  - Deriva
+  - RFI (ruido senoidal)
+  - EMI (ruido aleatorio)
+- Botones para:
+  - Iniciar simulación
+  - Pausar y reanudar
+  - Reiniciar
+- Configuración de pasos (`steps`) para definir la duración total de la simulación
